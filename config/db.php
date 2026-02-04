@@ -6,6 +6,13 @@ $db_name = getenv('DB_NAME') ?: 'diani_scouts_exam';
 $db_user = getenv('DB_USER') ?: 'diani_user';
 $db_pass = getenv('DB_PASSWORD') ?: 'password123';
 
+// Backward compatibility for existing files
+$host = $db_host;
+if ($db_port !== '3306')
+    $host .= ":" . $db_port;
+$username = $db_user;
+$password = $db_pass;
+
 try {
     $dsn = "mysql:host=$db_host;port=$db_port;dbname=$db_name;charset=utf8mb4";
     $pdo = new PDO($dsn, $db_user, $db_pass);
@@ -32,4 +39,7 @@ try {
         die("Database connection failed: " . $e->getMessage());
     }
 }
+
+// Global shared connection for files using $database
+$database = $pdo;
 ?>

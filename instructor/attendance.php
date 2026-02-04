@@ -6,7 +6,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'instructor') {
 }
 
 include_once '../config/db.php';
-$database = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+// $database is already provided by config/db.php
 
 // Fetch Today's Attendance for this instructor's troop
 $instructor_id = $_SESSION['user_id'];

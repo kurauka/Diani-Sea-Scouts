@@ -17,7 +17,7 @@ if (isset($_SESSION['role'])) {
 
 // Fetch Stats for Landing Page
 try {
-    $database = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+    // $database is already provided by config/db.php
 
     // Count Students
     $studentCount = $database->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
@@ -321,7 +321,8 @@ try {
                         <div
                             class="bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl h-80 flex items-center justify-center overflow-hidden">
                             <img src="images/logo2.png" alt="Diani Sea Scouts Logo"
-                                class="w-full h-full object-contain"> </div>
+                                class="w-full h-full object-contain">
+                        </div>
                         <p class="text-center font-semibold text-blue-700 mt-4">Building Tomorrow's Ocean Leaders</p>
                     </div>
                 </div>

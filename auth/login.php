@@ -6,7 +6,7 @@ include_once '../models/User.php';
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $database = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+    // $database is already provided by config/db.php
     $user = new User($database);
 
     // Check Maintenance Mode
