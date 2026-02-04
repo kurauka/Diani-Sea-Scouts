@@ -6,7 +6,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 include_once '../config/db.php';
-$database = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
+// $database is already provided by config/db.php
 
 // History Filters
 $startDate = $_GET['start_date'] ?? date('Y-m-d');
@@ -56,6 +56,8 @@ $totalStudentsStmt = $database->query("SELECT COUNT(*) FROM users WHERE role = '
 $totalStudentsCount = $totalStudentsStmt->fetchColumn();
 $uniqueStudentsScanned = count(array_unique(array_column($logs, 'student_id')));
 $coverage = $totalStudentsCount > 0 ? round(($uniqueStudentsScanned / $totalStudentsCount) * 100) : 0;
+
+include_once '../includes/header.php';
 ?>
 <style>
     @media print {
@@ -96,16 +98,16 @@ $coverage = $totalStudentsCount > 0 ? round(($uniqueStudentsScanned / $totalStud
     <main class="flex-1 overflow-y-auto p-4 md:p-8">
         <div class="max-w-6xl mx-auto">
 
-            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 animate-fade-in-down">
-                <div>
-                    <span class="text-xs font-bold text-brand-blue uppercase tracking-widest mb-2 block">Command &
-                        Control</span>
-                    <h1
-                        class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand-dark to-brand-blue">
-                        Attendance Intel
-                    </h1>
-                    <p class="text-gray-500 text-lg mt-2 font-medium">Monitoring troop presence and scanning efficiency.
-                    </p>
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6 animate-fade-in-down">
+                <div class="space-y-2">
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[10px] font-black text-brand-blue uppercase tracking-widest border border-blue-100 shadow-sm">
+                        <i class="fas fa-satellite-dish"></i> Live Intelligence
+                    </span>
+                    <h1 class="text-6xl font-black text-slate-900 tracking-tighter leading-none italic">Attendance <span
+                            class="text-brand-blue">Intel</span></h1>
+                    <p class="text-slate-500 text-lg font-bold opacity-70">Troop presence monitoring & efficiency
+                        analytics.</p>
                 </div>
 
                 <div class="flex items-center gap-3 no-print">
@@ -198,14 +200,26 @@ $coverage = $totalStudentsCount > 0 ? round(($uniqueStudentsScanned / $totalStud
                 </form>
             </div>
 
-            <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
-                <div class="p-6 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
-                    <h3 class="font-black text-slate-800 text-sm italic tracking-tight">Real-time Activity Feed</h3>
-                    <div class="flex gap-2">
-                        <span
-                            class="text-[10px] font-bold px-3 py-1 bg-green-100 text-green-600 rounded-lg uppercase tracking-widest">Present</span>
-                        <span
-                            class="text-[10px] font-bold px-3 py-1 bg-orange-100 text-orange-600 rounded-lg uppercase tracking-widest">Late</span>
+            <div
+                class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-2xl shadow-blue-900/5 overflow-hidden ring-1 ring-slate-200/50">
+                <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-black text-slate-800 text-sm italic tracking-tight flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-brand-blue animate-pulse"></span>
+                            Verified Activity Feed
+                        </h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Real-time scan
+                            logs</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Present</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Late</span>
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
