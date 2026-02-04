@@ -8,6 +8,77 @@ include_once '../includes/header.php';
 ?>
 <!-- FullCalendar CSS -->
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<style>
+    :root {
+        --fc-border-color: #f1f5f9;
+        --fc-daygrid-event-dot-width: 8px;
+        --fc-today-bg-color: #f8fafc;
+    }
+
+    .fc {
+        font-family: 'Inter', sans-serif;
+        background: white;
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem !important;
+        font-weight: 800;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .fc .fc-button-primary {
+        background-color: #f8fafc;
+        border-color: #f1f5f9;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem !important;
+        transition: all 0.2s;
+    }
+
+    .fc .fc-button-primary:hover {
+        background-color: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .fc .fc-button-active {
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
+        color: white !important;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #f1f5f9 !important;
+    }
+
+    .fc-day-today {
+        background-color: var(--fc-today-bg-color) !important;
+    }
+
+    .fc-event {
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        border: none !important;
+        margin: 1px 2px !important;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .fc-event:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+</style>
 
 <div class="flex flex-col md:flex-row flex-1 bg-gray-50 h-screen overflow-hidden">
     <?php include_once '../includes/sidebar.php'; ?>
@@ -18,33 +89,58 @@ include_once '../includes/header.php';
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
             <!-- Sidebar / Legend / Tools -->
             <div class="space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 class="font-bold text-gray-700 mb-4">Quick Add Event</h2>
-                    <p class="text-xs text-gray-500 mb-4">Click on any date in the calendar to add an event, or drag to
-                        select a range.</p>
+                <div
+                    class="bg-gradient-to-br from-brand-blue to-blue-700 p-6 rounded-3xl text-white shadow-xl relative overflow-hidden group">
+                    <div
+                        class="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700">
+                    </div>
+                    <h2 class="font-black text-xl mb-2 relative z-10 flex items-center gap-2">
+                        <i class="fas fa-calendar-plus text-blue-200"></i>
+                        Manage
+                    </h2>
+                    <p class="text-blue-100 text-xs mb-6 relative z-10 leading-relaxed font-medium">Click on any date to
+                        schedule an event or drag existing ones to reschedule.</p>
 
                     <button onclick="openModalWithToday()"
-                        class="w-full bg-brand-blue text-white py-2 rounded-lg font-bold hover:bg-blue-600 transition shadow-md flex items-center justify-center gap-2 mb-4">
-                        <i class="fas fa-plus"></i> Add Event
+                        class="w-full bg-white text-brand-blue py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition shadow-lg flex items-center justify-center gap-2 mb-2 relative z-10">
+                        <i class="fas fa-plus"></i> New Event
                     </button>
+                </div>
 
-                    <h3 class="font-bold text-gray-700 mb-2 mt-6">Legend</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#DA292E]"></span>
-                            Exam / Deadline</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#2EC4B6]"></span>
-                            Class / Seminar</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#FF9F1C]"></span>
-                            Meeting</div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#20A4F3]"></span>
-                            Holiday / Event</div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <h3
+                        class="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-brand-blue"></i>
+                        Color Legend
+                    </h3>
+                    <div class="space-y-3 font-bold text-slate-600">
+                        <div
+                            class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-default text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#DA292E] ring-4 ring-red-50"></span>
+                            Exam / Deadline
+                        </div>
+                        <div
+                            class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-default text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#2EC4B6] ring-4 ring-teal-50"></span>
+                            Class / Seminar
+                        </div>
+                        <div
+                            class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-default text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#FF9F1C] ring-4 ring-orange-50"></span>
+                            Meeting
+                        </div>
+                        <div
+                            class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-default text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#20A4F3] ring-4 ring-blue-50"></span>
+                            Holiday / Event
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Calendar Container -->
-            <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-h-[600px]">
-                <div id='calendar'></div>
+            <div class="lg:col-span-3 bg-white p-2 rounded-3xl shadow-sm border border-gray-100 min-h-[650px]">
+                <div id='calendar' class="h-full"></div>
             </div>
         </div>
     </main>
@@ -52,44 +148,53 @@ include_once '../includes/header.php';
 
 <!-- Add Event Modal -->
 <div id="eventModal"
-    class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300"
+    class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl p-8 w-full max-w-md transform scale-95 transition-transform duration-300 shadow-2xl relative overflow-hidden"
         id="modalContent">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Add New Event</h2>
+        <div class="w-16 h-1 bg-brand-blue rounded-full mb-6 mx-auto"></div>
+        <h2 class="text-2xl font-black text-slate-800 mb-6 text-center">Schedule New Event</h2>
 
-        <form id="addEventForm" class="space-y-4">
+        <form id="addEventForm" class="space-y-5">
             <input type="hidden" id="eventStart">
             <input type="hidden" id="eventEnd">
 
-            <div>
-                <label class="block text-gray-600 text-sm font-bold mb-2">Event Title</label>
-                <input type="text" id="eventTitle" required
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue">
+            <div class="space-y-1">
+                <label class="block text-slate-500 text-[10px] font-black uppercase tracking-widest ml-1">Event
+                    Title</label>
+                <input type="text" id="eventTitle" required placeholder="e.g. Advanced Navigation Exam"
+                    class="w-full px-5 py-3 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-blue font-bold text-slate-700">
             </div>
 
-            <div>
-                <label class="block text-gray-600 text-sm font-bold mb-2">Event Type</label>
-                <select id="eventType"
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue">
-                    <option value="exam">Exam 🔴</option>
-                    <option value="class">Class 🟢</option>
-                    <option value="meeting">Meeting 🟠</option>
-                    <option value="holiday">Holiday 🔵</option>
-                    <option value="other">Other ⚪</option>
-                </select>
+            <div class="space-y-1">
+                <label class="block text-slate-500 text-[10px] font-black uppercase tracking-widest ml-1">Event
+                    Type</label>
+                <div class="relative">
+                    <select id="eventType"
+                        class="w-full px-5 py-3 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-blue font-bold text-slate-700 appearance-none">
+                        <option value="exam">Exam 🔴</option>
+                        <option value="class">Class 🟢</option>
+                        <option value="meeting">Meeting 🟠</option>
+                        <option value="holiday">Holiday 🔵</option>
+                        <option value="other">Other ⚪</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <label class="block text-gray-600 text-sm font-bold mb-2">Description (Optional)</label>
-                <textarea id="eventDesc" rows="2"
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue"></textarea>
+            <div class="space-y-1">
+                <label
+                    class="block text-slate-500 text-[10px] font-black uppercase tracking-widest ml-1">Description</label>
+                <textarea id="eventDesc" rows="3" placeholder="Tell students what to expect..."
+                    class="w-full px-5 py-3 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-blue font-bold text-slate-700"></textarea>
             </div>
 
-            <div class="flex justify-end gap-3 mt-6">
+            <div class="flex gap-3 mt-8">
                 <button type="button" onclick="closeModal()"
-                    class="px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                    class="flex-1 py-4 text-slate-400 font-bold hover:text-slate-600 transition">Discard</button>
                 <button type="submit"
-                    class="bg-brand-blue text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600">Save
+                    class="flex-[2] bg-brand-blue text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 shadow-lg transition">Create
                     Event</button>
             </div>
         </form>
@@ -115,6 +220,19 @@ include_once '../includes/header.php';
             editable: true, // Drag and drop enabled
             events: 'calendar_logic.php', // Fetch events from backend
 
+            eventDidMount: function (info) {
+                // Color mapping logic
+                const type = info.event.extendedProps.type;
+                let color = '#20A4F3'; // Default
+                if (type === 'exam') color = '#DA292E';
+                if (type === 'class') color = '#2EC4B6';
+                if (type === 'meeting') color = '#FF9F1C';
+
+                info.el.style.backgroundColor = color + '22'; // Transparent bg
+                info.el.style.color = color;
+                info.el.style.borderLeft = `4px solid ${color}`;
+            },
+
             // Handle Date Click / Selection
             select: function (info) {
                 document.getElementById('eventStart').value = info.startStr;
@@ -124,15 +242,40 @@ include_once '../includes/header.php';
 
             // Handle Event Click (Delete)
             eventClick: function (info) {
-                if (confirm("Delete '" + info.event.title + "'?")) {
-                    fetch('calendar_logic.php?action=delete&id=' + info.event.id)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'deleted') {
-                                info.event.remove();
-                            }
-                        });
-                }
+                Swal.fire({
+                    title: 'Manage Event',
+                    text: `What would you like to do with "${info.event.title}"?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Keep it',
+                    denyButtonText: 'Delete Event',
+                    cancelButtonText: 'Close',
+                    confirmButtonColor: '#10b981',
+                    denyButtonColor: '#ef4444',
+                    customClass: {
+                        popup: 'rounded-3xl',
+                        confirmButton: 'rounded-xl px-6',
+                        denyButton: 'rounded-xl px-6'
+                    }
+                }).then((result) => {
+                    if (result.isDenied) {
+                        fetch('calendar_logic.php?action=delete&id=' + info.event.id)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'deleted') {
+                                    info.event.remove();
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        icon: 'success',
+                                        timer: 1500,
+                                        showConfirmButton: false,
+                                        customClass: { popup: 'rounded-3xl' }
+                                    });
+                                }
+                            });
+                    }
+                });
             }
         });
 
