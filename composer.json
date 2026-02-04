@@ -1,0 +1,8 @@
+{
+    "name": "kurauka/diani-sea-scouts",
+    "description": "Diani Sea Scouts Examination and Management System",
+    "type": "project",
+    "require": {
+        "php": ">=8.0"
+    }
+}
