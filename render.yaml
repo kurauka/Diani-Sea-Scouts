@@ -1,9 +1,7 @@
 services:
   - type: web
     name: diani-sea-scouts
-    env: php
-    buildCommand: composer install
-    startCommand: apachectl -D FOREGROUND
+    runtime: docker
     envVars:
       - key: DB_HOST
         sync: false
@@ -13,5 +11,3 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
-      - key: PHP_VERSION
-        value: 8.2
