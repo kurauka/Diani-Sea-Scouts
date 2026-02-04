@@ -90,6 +90,16 @@
                 <i class="fas fa-calendar-check w-6 group-hover:text-brand-blue transition-colors"></i>
                 <span>Attendance</span>
             </a>
+            <a href="../instructor/review_activities.php"
+                class="<?php echo isActive('review_activities.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-hiking w-6 group-hover:text-brand-blue transition-colors"></i>
+                <span>Activity Approvals</span>
+            </a>
+            <a href="../instructor/inventory.php"
+                class="<?php echo isActive('inventory.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-warehouse w-6 group-hover:text-brand-blue transition-colors"></i>
+                <span>Equipment Store</span>
+            </a>
 
         <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
             <a href="../student/dashboard.php"
@@ -126,6 +136,16 @@
                 class="<?php echo isActive('profile.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-brand-blue transition-colors"></i>
                 <span>My Profile</span>
+            </a>
+            <a href="../student/my_gear.php"
+                class="<?php echo isActive('my_gear.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-tools w-6 group-hover:text-brand-blue transition-colors"></i>
+                <span>My Gear</span>
+            </a>
+            <a href="../student/outdoor_activities.php"
+                class="<?php echo isActive('outdoor_activities.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-mountain w-6 group-hover:text-brand-blue transition-colors"></i>
+                <span>Outdoor Activities</span>
             </a>
 
         <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
@@ -169,6 +189,41 @@
                 class="<?php echo isActive('attendance_logs.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
                 <i class="fas fa-calendar-check w-6 group-hover:text-cyan-400 transition-colors"></i>
                 <span>Attendance Logs</span>
+            </a>
+            <a href="../admin/event_intel.php"
+                class="<?php echo isActive('event_intel.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-layer-group w-6 group-hover:text-cyan-400 transition-colors"></i>
+                <span>Event Intel</span>
+            </a>
+            <a href="../instructor/review_activities.php"
+                class="<?php echo isActive('review_activities.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-hiking w-6 group-hover:text-cyan-400 transition-colors"></i>
+                <span>Activity Approvals</span>
+            </a>
+            <div class="pt-4 pb-1">
+                <p class="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Inventory Systems</p>
+            </div>
+            <a href="../admin/inventory.php"
+                class="<?php echo isActive('inventory.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-boxes w-6 group-hover:text-cyan-400 transition-colors"></i>
+                <span>Equipment Store</span>
+            </a>
+            <a href="../admin/maintenance.php"
+                class="<?php echo isActive('maintenance.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-tools w-6 group-hover:text-cyan-400 transition-colors"></i>
+                <span>Maintenance & Repairs</span>
+            </a>
+            <a href="../admin/inventory_reports.php"
+                class="<?php echo isActive('inventory_reports.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-chart-line w-6 group-hover:text-cyan-400 transition-colors"></i>
+                <span>Logistics Analytics</span>
+            </a>
+
+        <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'maintenance_officer'): ?>
+            <a href="../admin/maintenance.php"
+                class="<?php echo isActive('maintenance.php', $current_page); ?> flex items-center px-4 py-3 rounded-xl transition-all duration-200 group">
+                <i class="fas fa-tools w-6 group-hover:text-brand-blue transition-colors"></i>
+                <span>Maintenance Dashboard</span>
             </a>
         <?php endif; ?>
     </nav>

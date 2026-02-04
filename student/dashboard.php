@@ -47,6 +47,31 @@ if ($exams_taken > 0) {
         $best_subject = $best['subject'];
 }
 
+// 5. Gear Borrowing Stats
+$gearStmt = $database->prepare("SELECT COUNT(*) FROM borrowing_records WHERE user_id = :uid AND status = 'Issued'");
+$gearStmt->execute([':uid' => $_SESSION['user_id']]);
+$itemsBorrowed = $gearStmt->fetchColumn();
+
+// 6. Attendance Stats
+$attStmt = $database->prepare("SELECT status, COUNT(*) as count FROM attendance WHERE student_id = :uid GROUP BY status");
+$attStmt->execute([':uid' => $_SESSION['user_id']]);
+$attRaw = $attStmt->fetchAll(PDO::FETCH_ASSOC);
+$attStats = ['present' => 0, 'late' => 0, 'absent' => 0];
+foreach ($attRaw as $row) {
+    if (isset($attStats[$row['status']])) {
+        $attStats[$row['status']] = $row['count'];
+    }
+}
+$totalSessions = array_sum($attStats);
+$attendanceRate = $totalSessions > 0 ? round(($attStats['present'] / $totalSessions) * 100) : 0;
+
+// 7. Outdoor Activity Stats
+$actStmt = $database->prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Approved' THEN hours ELSE 0 END) as hours FROM outdoor_activities WHERE student_id = :uid");
+$actStmt->execute([':uid' => $_SESSION['user_id']]);
+$actStats = $actStmt->fetch(PDO::FETCH_ASSOC);
+$totalActivities = $actStats['total'];
+$approvedHours = $actStats['hours'] ?? 0;
+
 // Time Aware Greeting
 $hour = date('H');
 $greeting = "Hello";
@@ -135,6 +160,21 @@ else
                         <p class="text-3xl font-bold text-teal-300"><?php echo $avg_score; ?>%</p>
                         <p class="text-xs text-teal-100 uppercase font-semibold">Avg Score</p>
                     </div>
+                    <div onclick="window.location='attendance.php'"
+                        class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl text-center min-w-[120px] hover:bg-white/20 transition transform hover:-translate-y-1 cursor-pointer">
+                        <p class="text-3xl font-bold text-green-300"><?php echo $attendanceRate; ?>%</p>
+                        <p class="text-xs text-green-100 uppercase font-semibold">Attendance</p>
+                    </div>
+                    <div onclick="window.location='my_gear.php'"
+                        class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl text-center min-w-[120px] hover:bg-white/20 transition transform hover:-translate-y-1 cursor-pointer">
+                        <p class="text-3xl font-bold text-orange-400"><?php echo $itemsBorrowed; ?></p>
+                        <p class="text-xs text-orange-100 uppercase font-semibold">Gear Items</p>
+                    </div>
+                    <div onclick="window.location='outdoor_activities.php'"
+                        class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl text-center min-w-[120px] hover:bg-white/20 transition transform hover:-translate-y-1 cursor-pointer">
+                        <p class="text-3xl font-bold text-indigo-300"><?php echo $approvedHours; ?></p>
+                        <p class="text-xs text-indigo-100 uppercase font-semibold">Activity Hours</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -176,31 +216,38 @@ else
                     $announceQuery = "SELECT * FROM announcements ORDER BY created_at DESC LIMIT 3";
                     $announceStmt = $database->query($announceQuery);
                     if ($announceStmt->rowCount() > 0):
-                    ?>
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-pale">
-                        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-bullhorn text-brand-blue"></i> Recent Announcements
-                        </h2>
-                        <div class="space-y-3">
-                            <?php while ($ann = $announceStmt->fetch(PDO::FETCH_ASSOC)): 
-                                 $bg = 'bg-blue-50 border-blue-100 text-blue-700';
-                                 $icon = 'fa-info-circle';
-                                 if($ann['type'] == 'warning') { $bg = 'bg-orange-50 border-orange-100 text-orange-700'; $icon = 'fa-exclamation-triangle'; }
-                                 if($ann['type'] == 'urgent') { $bg = 'bg-red-50 border-red-100 text-red-700'; $icon = 'fa-exclamation-circle'; }
-                            ?>
-                            <div class="p-4 rounded-xl border <?php echo $bg; ?> flex gap-3 items-start">
-                                <i class="fas <?php echo $icon; ?> mt-1"></i>
-                                <div>
-                                    <h3 class="font-bold text-sm mb-1"><?php echo htmlspecialchars($ann['title']); ?></h3>
-                                    <p class="text-xs opacity-80"><?php echo htmlspecialchars($ann['message']); ?></p>
-                                    <span class="text-[10px] uppercase font-bold tracking-wider mt-2 block opacity-60">
-                                        <?php echo date('M d, H:i', strtotime($ann['created_at'])); ?>
-                                    </span>
-                                </div>
+                        ?>
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-pale">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-bullhorn text-brand-blue"></i> Recent Announcements
+                            </h2>
+                            <div class="space-y-3">
+                                <?php while ($ann = $announceStmt->fetch(PDO::FETCH_ASSOC)):
+                                    $bg = 'bg-blue-50 border-blue-100 text-blue-700';
+                                    $icon = 'fa-info-circle';
+                                    if ($ann['type'] == 'warning') {
+                                        $bg = 'bg-orange-50 border-orange-100 text-orange-700';
+                                        $icon = 'fa-exclamation-triangle';
+                                    }
+                                    if ($ann['type'] == 'urgent') {
+                                        $bg = 'bg-red-50 border-red-100 text-red-700';
+                                        $icon = 'fa-exclamation-circle';
+                                    }
+                                    ?>
+                                    <div class="p-4 rounded-xl border <?php echo $bg; ?> flex gap-3 items-start">
+                                        <i class="fas <?php echo $icon; ?> mt-1"></i>
+                                        <div>
+                                            <h3 class="font-bold text-sm mb-1"><?php echo htmlspecialchars($ann['title']); ?>
+                                            </h3>
+                                            <p class="text-xs opacity-80"><?php echo htmlspecialchars($ann['message']); ?></p>
+                                            <span class="text-[10px] uppercase font-bold tracking-wider mt-2 block opacity-60">
+                                                <?php echo date('M d, H:i', strtotime($ann['created_at'])); ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <?php endwhile; ?>
                             </div>
-                            <?php endwhile; ?>
                         </div>
-                    </div>
                     <?php endif; ?>
 
                     <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -364,6 +411,47 @@ else
                             <?php if ($matStmt->rowCount() == 0): ?>
                                 <p class="text-xs text-gray-400 text-center py-4">No materials uploaded yet.</p>
                             <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities Widget -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-gray-800 font-bold">Outdoor Activity</h3>
+                            <a href="outdoor_activities.php"
+                                class="text-xs font-bold text-brand-blue hover:underline">View All</a>
+                        </div>
+                        <?php
+                        $recentAct = $database->prepare("SELECT title, status, activity_date FROM outdoor_activities WHERE student_id = :uid ORDER BY created_at DESC LIMIT 2");
+                        $recentAct->execute([':uid' => $_SESSION['user_id']]);
+                        $acts = $recentAct->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
+                        <div class="space-y-3">
+                            <?php foreach ($acts as $act): ?>
+                                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <p class="text-sm font-bold text-gray-700 truncate">
+                                            <?php echo htmlspecialchars($act['title']); ?></p>
+                                        <?php
+                                        $sClass = 'text-orange-500';
+                                        if ($act['status'] == 'Approved')
+                                            $sClass = 'text-green-500';
+                                        if ($act['status'] == 'Rejected')
+                                            $sClass = 'text-red-500';
+                                        ?>
+                                        <span
+                                            class="text-[9px] font-black uppercase <?php echo $sClass; ?>"><?php echo $act['status']; ?></span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400">
+                                        <?php echo date('M d, Y', strtotime($act['activity_date'])); ?></p>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php if (empty($acts)): ?>
+                                <p class="text-xs text-gray-400 text-center py-2">No activities logged yet.</p>
+                            <?php endif; ?>
+                            <a href="outdoor_activities.php"
+                                class="block w-full text-center py-2 text-[10px] font-black text-brand-blue uppercase tracking-widest hover:bg-brand-pale rounded-lg transition">Log
+                                New Activity</a>
                         </div>
                     </div>
 

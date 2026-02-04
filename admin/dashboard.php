@@ -26,6 +26,13 @@ $totalInstructors = $userStats['instructor'] ?? 0;
 $totalAdmins = $userStats['admin'] ?? 0;
 
 $recentUsers = $database->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+
+// Inventory stats
+$repairStmt = $database->query("SELECT COUNT(*) FROM equipment WHERE status = 'Under Repair'");
+$itemsUnderRepair = $repairStmt->fetchColumn();
+
+$lowStockStmt = $database->query("SELECT COUNT(*) FROM equipment WHERE available_quantity <= 2");
+$lowStockCount = $lowStockStmt->fetchColumn();
 ?>
 <?php include_once '../includes/header.php'; ?>
 <!-- Chart.js -->
@@ -118,13 +125,33 @@ $recentUsers = $database->query("SELECT * FROM users ORDER BY created_at DESC LI
                 class="stats-card group bg-white rounded-3xl p-6 border border-gray-100 relative overflow-hidden hover:shadow-xl transition-all duration-300 shadow-lg">
                 <div
                     class="absolute -right-10 -bottom-10 text-9xl text-green-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
-                    <i class="fas fa-user-check"></i></div>
+                    <i class="fas fa-user-check"></i>
+                </div>
                 <h3 class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Today's Presence</h3>
                 <p class="text-4xl font-extrabold text-gray-800 group-hover:text-green-600 transition-colors">
-                    <?php echo $todayAttendance; ?></p>
+                    <?php echo $todayAttendance; ?>
+                </p>
                 <div class="mt-4 flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-lg w-fit">
                     Verified ID Scans
                 </div>
+            </div>
+
+            <!-- Equipment Health -->
+            <div
+                class="stats-card group bg-white rounded-3xl p-6 border border-gray-100 relative overflow-hidden hover:shadow-xl transition-all duration-300 shadow-lg">
+                <div
+                    class="absolute -right-10 -bottom-10 text-9xl text-orange-100 opacity-50 group-hover:scale-110 transition-transform duration-500">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h3 class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Under Repair</h3>
+                <p class="text-4xl font-extrabold text-gray-800 group-hover:text-orange-600 transition-colors">
+                    <?php echo $itemsUnderRepair; ?>
+                </p>
+                <?php if ($lowStockCount > 0): ?>
+                    <div class="mt-4 flex items-center gap-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg w-fit">
+                        <i class="fas fa-exclamation-triangle"></i> <?php echo $lowStockCount; ?> Low Stock Alert
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -214,6 +241,19 @@ $recentUsers = $database->query("SELECT * FROM users ORDER BY created_at DESC LI
                                 Management</span>
                             <i
                                 class="fas fa-arrow-right opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all"></i>
+                        </a>
+                        <a href="inventory_reports.php"
+                            class="group flex items-center justify-between w-full bg-brand-pale hover:bg-brand-blue/10 text-brand-blue p-4 rounded-xl transition-all duration-300">
+                            <span class="font-bold flex items-center gap-3"><i class="fas fa-chart-line"></i> Logistics
+                                Analytics</span>
+                            <i
+                                class="fas fa-arrow-right opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all"></i>
+                        </a>
+                        <a href="inventory.php"
+                            class="group flex items-center justify-between w-full bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-800 p-4 rounded-xl transition-all duration-300">
+                            <span class="font-bold flex items-center gap-3"><i class="fas fa-boxes"></i> Equipment
+                                Store</span>
+                            <i class="fas fa-external-link-alt text-xs opacity-50"></i>
                         </a>
                         <a href="settings.php"
                             class="group flex items-center justify-between w-full bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-800 p-4 rounded-xl transition-all duration-300">

@@ -31,6 +31,14 @@ if ($time_hour >= 12 && $time_hour < 17)
     $greeting = "Good Afternoon";
 if ($time_hour >= 17)
     $greeting = "Good Evening";
+
+// Gear stats
+$loanStmt = $database->query("SELECT COUNT(*) FROM borrowing_records WHERE status = 'Issued'");
+$activeLoans = $loanStmt->fetchColumn();
+
+// Pending Activities
+$actStmt = $database->query("SELECT COUNT(*) FROM outdoor_activities WHERE status = 'Pending'");
+$pendingActivities = $actStmt->fetchColumn();
 ?>
 <?php include_once '../includes/header.php'; ?>
 
@@ -103,9 +111,34 @@ if ($time_hour >= 17)
                 </div>
             </div>
 
-            <!-- Pending Review (Mock) -->
+            <!-- Active Gear Loans -->
             <div
                 class="stats-card group bg-white rounded-3xl p-6 shadow-lg border border-gray-100 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                <div
+                    class="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-teal-50 to-teal-100 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700">
+                </div>
+
+                <div class="relative z-10 flex flex-col justify-between h-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <div
+                            class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 shadow-sm group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fas fa-hand-holding-heart text-xl"></i>
+                        </div>
+                        <span
+                            class="bg-teal-100 text-teal-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <i class="fas fa-exchange-alt"></i> On Loan
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="text-gray-400 font-medium text-sm uppercase tracking-wide">Active Gear Loans</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-1"><?php echo $activeLoans; ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Approvals Card -->
+            <div onclick="window.location='review_activities.php'"
+                class="stats-card group bg-white rounded-3xl p-6 shadow-lg border border-gray-100 relative overflow-hidden transition-all duration-300 hover:shadow-2xl cursor-pointer">
                 <div
                     class="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700">
                 </div>
@@ -113,17 +146,19 @@ if ($time_hour >= 17)
                 <div class="relative z-10 flex flex-col justify-between h-full">
                     <div class="flex justify-between items-start mb-4">
                         <div
-                            class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 shadow-sm group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-                            <i class="fas fa-clipboard-check text-xl"></i>
+                            class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fas fa-hiking text-xl"></i>
                         </div>
-                        <span
-                            class="bg-orange-100 text-orange-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <i class="fas fa-clock"></i> Pending
-                        </span>
+                        <?php if ($pendingActivities > 0): ?>
+                            <span
+                                class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle"></i> Action Required
+                            </span>
+                        <?php endif; ?>
                     </div>
                     <div>
-                        <h3 class="text-gray-400 font-medium text-sm uppercase tracking-wide">Pending Review</h3>
-                        <p class="text-4xl font-bold text-gray-800 mt-1">4</p>
+                        <h3 class="text-gray-400 font-medium text-sm uppercase tracking-wide">Pending Approvals</h3>
+                        <p class="text-4xl font-bold text-gray-800 mt-1"><?php echo $pendingActivities; ?></p>
                     </div>
                 </div>
             </div>
@@ -157,6 +192,14 @@ if ($time_hour >= 17)
                     <i class="fas fa-calendar-plus"></i>
                 </div>
                 <span class="font-bold text-gray-700 text-sm">Pin Event</span>
+            </a>
+            <a href="inventory.php"
+                class="group bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-teal-500 hover:shadow-md transition-all text-center">
+                <div
+                    class="w-10 h-10 mx-auto bg-teal-50 rounded-full flex items-center justify-center text-teal-600 mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <span class="font-bold text-gray-700 text-sm">Gear Logistics</span>
             </a>
             <a href="students_list.php"
                 class="group bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition-all text-center">
@@ -200,7 +243,8 @@ if ($time_hour >= 17)
                                     <h4 class="font-bold text-gray-800 text-sm"><?php echo htmlspecialchars($ann['title']); ?>
                                     </h4>
                                     <p class="text-xs text-gray-400 mt-1">
-                                        <?php echo date('M d, H:i', strtotime($ann['created_at'])); ?></p>
+                                        <?php echo date('M d, H:i', strtotime($ann['created_at'])); ?>
+                                    </p>
                                 </div>
                             </div>
                         <?php endwhile; ?>
