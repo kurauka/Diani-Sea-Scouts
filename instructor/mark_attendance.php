@@ -34,10 +34,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($event_id))
             $event_id = null;
 
-        // Insert attendance
-        $sql = "INSERT INTO attendance (student_id, instructor_id, event_id, attendance_date) VALUES (:sid, :ins, :eid, CURRENT_DATE)";
-        $stmt = $database->prepare($sql);
-        $stmt->execute([':sid' => $student_id, ':ins' => $instructor_id, ':eid' => $event_id]);
+        $status = $_POST['status'] ?? 'present';
+        $valid_statuses = ['present', 'absent', 'late', 'excused'];
+        if (!in_array($status, $valid_statuses))
+            $status = 'present';
+
+        // Check if already exists for today/event
+        $checkSql = "SELECT id FROM attendance WHERE student_id = :sid AND attendance_date = CURRENT_DATE";
+        if ($event_id) {
+            $checkSql .= " AND event_id = :eid";
+        } else {
+            $checkSql .= " AND event_id IS NULL";
+        }
+
+        $cStmt = $database->prepare($checkSql);
+        $params = [':sid' => $student_id];
+        if ($event_id)
+            $params[':eid'] = $event_id;
+        $cStmt->execute($params);
+        $existing_id = $cStmt->fetchColumn();
+
+        if ($existing_id) {
+            // Update existing
+            $sql = "UPDATE attendance SET status = :status, instructor_id = :ins WHERE id = :id";
+            $stmt = $database->prepare($sql);
+            $stmt->execute([':status' => $status, ':ins' => $instructor_id, ':id' => $existing_id]);
+        } else {
+            // Insert new
+            $sql = "INSERT INTO attendance (student_id, instructor_id, event_id, attendance_date, status) 
+                    VALUES (:sid, :ins, :eid, CURRENT_DATE, :status)";
+            $stmt = $database->prepare($sql);
+            $stmt->execute([':sid' => $student_id, ':ins' => $instructor_id, ':eid' => $event_id, ':status' => $status]);
+        }
 
         $eventName = "";
         if ($event_id) {
@@ -49,14 +77,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode([
             'success' => true,
             'name' => $student_name . $eventName,
+            'status' => $status,
             'time' => date('H:i A')
         ]);
     } catch (PDOException $e) {
-        if ($e->getCode() == 23000) { // Unique constraint violation
-            echo json_encode(['success' => false, 'error' => 'Already Marked' . ($event_id ? ' for this event' : ' Today')]);
-        } else {
-            echo json_encode(['success' => false, 'error' => 'Database Error: ' . $e->getMessage()]);
-        }
+        echo json_encode(['success' => false, 'error' => 'Database Error: ' . $e->getMessage()]);
     }
 }
 ?>
