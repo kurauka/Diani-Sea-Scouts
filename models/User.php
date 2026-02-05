@@ -33,7 +33,7 @@ class User
         // Bind data
         $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':email', $this->email);
-        $stmt->bindParam(':password', password_hash($this->password, PASSWORD_BCRYPT));
+        $stmt->bindValue(':password', password_hash($this->password, PASSWORD_BCRYPT));
         $stmt->bindParam(':role', $this->role);
 
         if ($stmt->execute()) {
