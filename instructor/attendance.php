@@ -14,18 +14,32 @@ $stmt = $database->prepare("SELECT troop_id FROM users WHERE id = ?");
 $stmt->execute([$instructor_id]);
 $troop_id = $stmt->fetchColumn();
 
+// Determine Attendance Date
+$attendance_date = date('Y-m-d'); // Default to today
+$event_title = '';
+
+if (isset($_GET['event_id'])) {
+    $event_id = $_GET['event_id'];
+    $stmt = $database->prepare("SELECT start_date, title FROM calendar_events WHERE id = ?");
+    $stmt->execute([$event_id]);
+    $event = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($event) {
+        $attendance_date = $event['start_date'];
+        $event_title = $event['title'];
+    }
+}
+
 // Fetch all students in this troop (handle NULL troop_id for testing/fallback)
 $student_query = "SELECT u.id, u.name, u.email, 
                   a.status as attendance_status, a.created_at as attendance_time,
                   e.title as event_title
                   FROM users u
-                  LEFT JOIN attendance a ON u.id = a.student_id AND a.attendance_date = CURRENT_DATE
+                  LEFT JOIN attendance a ON u.id = a.student_id AND a.attendance_date = :att_date
                   LEFT JOIN calendar_events e ON a.event_id = e.id
-                  WHERE (u.troop_id = :troop OR (u.troop_id IS NULL AND :troop_null = 1)) 
-                  AND u.role = 'student'
+                  WHERE u.role = 'student'
                   ORDER BY u.name ASC";
 $stmt = $database->prepare($student_query);
-$stmt->execute([':troop' => $troop_id, ':troop_null' => ($troop_id === null ? 1 : 0)]);
+$stmt->execute([':att_date' => $attendance_date]);
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Calculate Stats
@@ -44,7 +58,17 @@ foreach ($students as $s) {
 }
 
 // Fetch Today's & Future Events for setup selection
-$eventsStmt = $database->query("SELECT id, title, type FROM calendar_events WHERE start_date >= CURRENT_DATE ORDER BY start_date ASC LIMIT 10");
+$eventsQuery = "SELECT id, title, type FROM calendar_events WHERE start_date >= CURRENT_DATE";
+$params = [];
+
+if (isset($_GET['event_id'])) {
+    $eventsQuery .= " OR id = :eid";
+    $params[':eid'] = $_GET['event_id'];
+}
+
+$eventsQuery .= " ORDER BY start_date ASC LIMIT 10";
+$eventsStmt = $database->prepare($eventsQuery);
+$eventsStmt->execute($params);
 $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <?php include_once '../includes/header.php'; ?>
@@ -76,9 +100,11 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight italic">Troop Attendance</h1>
                     <p class="text-slate-500 font-medium">Troop ID: <span class="text-brand-blue font-bold">
-                            <?php echo htmlspecialchars($troop_id ?? 'N/A'); ?>
+                            ALL
                         </span> |
-                        <?php echo date('F d, Y'); ?>
+                        <span class="text-slate-800 font-bold">
+                            <?php echo date('F d, Y', strtotime($attendance_date)); ?>
+                        </span>
                     </p>
                 </div>
                 <div class="flex gap-3">
@@ -255,7 +281,7 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Attendance Setup Modal -->
 <div id="setupModal"
-    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 <?php echo isset($_GET['event_id']) ? 'hidden opacity-0' : ''; ?>">
     <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fadeIn">
         <div class="p-8 text-center">
             <div
@@ -354,6 +380,7 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
     const welcome = document.getElementById('welcomeScreen');
 
     let currentEventId = null;
+    let attendanceDate = "<?php echo $attendance_date; ?>";
 
     function toggleModal(id) {
         document.getElementById(id).classList.toggle('hidden');
@@ -388,7 +415,7 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
         fetch('finalize_attendance.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `event_id=${currentEventId || ''}`
+            body: `event_id=${currentEventId || ''}&date=${attendanceDate}`
         })
             .then(response => response.json())
             .then(data => {
@@ -457,7 +484,7 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function markAttendance(studentId, eventId = null, status = 'present') {
-        let body = `student_id=${studentId}&status=${status}`;
+        let body = `student_id=${studentId}&status=${status}&date=${attendanceDate}`;
         if (eventId) body += `&event_id=${eventId}`;
 
         fetch('mark_attendance.php', {
@@ -603,14 +630,14 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
     });
 
     <?php if (isset($_GET['event_id'])): ?>
-        // Auto-start session if event ID is passed
-        document.addEventListener('DOMContentLoaded', function () {
-            // Ensure select value is set (it should be by PHP logic above, but double check)
-            const select = document.getElementById('activitySelect');
-            if (select.value) {
-                setTimeout(startSession, 500);
-            }
-        });
+                // Auto-start session if event ID is passed
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Ensure select value is set (it should be by PHP logic above, but double check)
+                    const select = document.getElementById('activitySelect');
+                    if (select.value) {
+                        startSession();
+                    }
+                });
     <?php endif; ?>
 </script>
 <?php include_once '../includes/footer.php'; ?>

@@ -39,8 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array($status, $valid_statuses))
             $status = 'present';
 
-        // Check if already exists for today/event
-        $checkSql = "SELECT id FROM attendance WHERE student_id = :sid AND attendance_date = CURRENT_DATE";
+        $date = $_POST['date'] ?? date('Y-m-d');
+
+        // Check if already exists for date/event
+        $checkSql = "SELECT id FROM attendance WHERE student_id = :sid AND attendance_date = :att_date";
         if ($event_id) {
             $checkSql .= " AND event_id = :eid";
         } else {
@@ -48,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $cStmt = $database->prepare($checkSql);
-        $params = [':sid' => $student_id];
+        $params = [':sid' => $student_id, ':att_date' => $date];
         if ($event_id)
             $params[':eid'] = $event_id;
         $cStmt->execute($params);
@@ -62,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Insert new
             $sql = "INSERT INTO attendance (student_id, instructor_id, event_id, attendance_date, status) 
-                    VALUES (:sid, :ins, :eid, CURRENT_DATE, :status)";
+                    VALUES (:sid, :ins, :eid, :att_date, :status)";
             $stmt = $database->prepare($sql);
-            $stmt->execute([':sid' => $student_id, ':ins' => $instructor_id, ':eid' => $event_id, ':status' => $status]);
+            $stmt->execute([':sid' => $student_id, ':ins' => $instructor_id, ':eid' => $event_id, ':att_date' => $date, ':status' => $status]);
         }
 
         $eventName = "";

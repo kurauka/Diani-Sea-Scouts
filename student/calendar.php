@@ -201,28 +201,8 @@ include_once '../includes/header.php';
             },
 
             eventClick: function (info) {
-                const eventObj = new Date(info.event.start);
-                const nowObj = new Date();
-
-                // Compare dates (ignoring time)
-                const isToday = eventObj.toDateString() === nowObj.toDateString();
-
-                if (isToday) {
-                    showCheckinModal(info.event);
-                } else {
-                    // Modern alert
-                    Swal.fire({
-                        title: info.event.title,
-                        text: info.event.extendedProps.description || "No description provided.",
-                        icon: 'info',
-                        confirmButtonText: 'Got it',
-                        confirmButtonColor: '#0f172a',
-                        customClass: {
-                            popup: 'rounded-3xl',
-                            confirmButton: 'rounded-xl px-8 py-3'
-                        }
-                    });
-                }
+                // Show check-in modal for any event clicked
+                showCheckinModal(info.event);
             }
         });
         calendar.render();

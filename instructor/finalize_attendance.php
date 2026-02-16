@@ -16,37 +16,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($event_id))
         $event_id = null;
 
+    $date = $_POST['date'] ?? date('Y-m-d');
+
     try {
         // 1. Get instructor's troop
         $stmt = $database->prepare("SELECT troop_id FROM users WHERE id = ?");
         $stmt->execute([$instructor_id]);
         $troop_id = $stmt->fetchColumn();
 
-        // 2. Find all students in this troop who DON'T have a record for today/event
+        // 2. Find all students who DON'T have a record for date/event
         $findQuery = "SELECT id FROM users 
                       WHERE role = 'student' 
-                      AND (troop_id = :troop OR (:troop IS NULL AND troop_id IS NULL))
                       AND id NOT IN (
                           SELECT student_id FROM attendance 
-                          WHERE attendance_date = CURRENT_DATE 
+                          WHERE attendance_date = :att_date
                           AND (event_id = :eid OR (:eid IS NULL AND event_id IS NULL))
                       )";
 
         $findStmt = $database->prepare($findQuery);
-        $findStmt->execute([':troop' => $troop_id, ':eid' => $event_id]);
+        $findStmt->execute([':eid' => $event_id, ':att_date' => $date]);
         $missingStudents = $findStmt->fetchAll(PDO::FETCH_COLUMN);
 
         $marked = 0;
         if (!empty($missingStudents)) {
             $insertQuery = "INSERT INTO attendance (student_id, instructor_id, event_id, attendance_date, status) 
-                            VALUES (:sid, :ins, :eid, CURRENT_DATE, 'absent')";
+                            VALUES (:sid, :ins, :eid, :att_date, 'absent')";
             $insertStmt = $database->prepare($insertQuery);
 
             foreach ($missingStudents as $sid) {
                 $insertStmt->execute([
                     ':sid' => $sid,
                     ':ins' => $instructor_id,
-                    ':eid' => $event_id
+                    ':eid' => $event_id,
+                    ':att_date' => $date
                 ]);
                 $marked++;
             }
