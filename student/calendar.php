@@ -201,10 +201,13 @@ include_once '../includes/header.php';
             },
 
             eventClick: function (info) {
-                const eventDate = info.event.startStr.split('T')[0];
-                const today = new Date().toISOString().split('T')[0];
+                const eventObj = new Date(info.event.start);
+                const nowObj = new Date();
 
-                if (eventDate === today) {
+                // Compare dates (ignoring time)
+                const isToday = eventObj.toDateString() === nowObj.toDateString();
+
+                if (isToday) {
                     showCheckinModal(info.event);
                 } else {
                     // Modern alert

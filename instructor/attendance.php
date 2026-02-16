@@ -274,9 +274,15 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
                         class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-blue font-medium">
                         <option value="">General Troop Meeting (No Event)</option>
                         <optgroup label="Upcoming Events">
-                            <?php foreach ($availableEvents as $event): ?>
-                                <option value="<?php echo $event['id']; ?>"><?php echo htmlspecialchars($event['title']); ?>
-                                    (<?php echo ucfirst($event['type']); ?>)</option>
+                            <?php
+                            $selectedEventId = $_GET['event_id'] ?? null;
+                            foreach ($availableEvents as $event):
+                                $isSelected = ($selectedEventId && $selectedEventId == $event['id']) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo $event['id']; ?>" <?php echo $isSelected; ?>>
+                                    <?php echo htmlspecialchars($event['title']); ?>
+                                    (<?php echo ucfirst($event['type']); ?>)
+                                </option>
                             <?php endforeach; ?>
                         </optgroup>
                     </select>
@@ -595,5 +601,16 @@ $availableEvents = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
             scanMsg.classList.add('hidden');
         });
     });
+
+    <?php if (isset($_GET['event_id'])): ?>
+        // Auto-start session if event ID is passed
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ensure select value is set (it should be by PHP logic above, but double check)
+            const select = document.getElementById('activitySelect');
+            if (select.value) {
+                setTimeout(startSession, 500);
+            }
+        });
+    <?php endif; ?>
 </script>
 <?php include_once '../includes/footer.php'; ?>

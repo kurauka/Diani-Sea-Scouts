@@ -246,20 +246,26 @@ include_once '../includes/header.php';
                     title: 'Manage Event',
                     text: `What would you like to do with "${info.event.title}"?`,
                     icon: 'question',
-                    showCancelButton: true,
                     showDenyButton: true,
-                    confirmButtonText: 'Keep it',
-                    denyButtonText: 'Delete Event',
-                    cancelButtonText: 'Close',
-                    confirmButtonColor: '#10b981',
-                    denyButtonColor: '#ef4444',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-qrcode"></i> Take Attendance',
+                    denyButtonText: '<i class="fas fa-trash"></i> Delete',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#20A4F3',
+                    denyButtonColor: '#EF4444',
+                    cancelButtonColor: '#64748b',
                     customClass: {
                         popup: 'rounded-3xl',
-                        confirmButton: 'rounded-xl px-6',
-                        denyButton: 'rounded-xl px-6'
+                        confirmButton: 'rounded-xl px-4 py-2 mx-1',
+                        denyButton: 'rounded-xl px-4 py-2 mx-1',
+                        cancelButton: 'rounded-xl px-4 py-2 mx-1'
                     }
                 }).then((result) => {
-                    if (result.isDenied) {
+                    if (result.isConfirmed) {
+                        // Redirect to attendance page with event ID
+                        window.location.href = `attendance.php?event_id=${info.event.id}`;
+                    } else if (result.isDenied) {
+                        // Delete Event
                         fetch('calendar_logic.php?action=delete&id=' + info.event.id)
                             .then(response => response.json())
                             .then(data => {
@@ -272,6 +278,8 @@ include_once '../includes/header.php';
                                         showConfirmButton: false,
                                         customClass: { popup: 'rounded-3xl' }
                                     });
+                                } else {
+                                    Swal.fire('Error', 'Could not delete event', 'error');
                                 }
                             });
                     }
